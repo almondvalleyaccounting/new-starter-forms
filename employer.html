@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Starter — Employer Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --primary: #1a5c3a;
+    --primary-light: #e8f0eb;
+    --text: #1e1e1e;
+    --muted: #6b6b6b;
+    --border: #ddd;
+    --radius: 10px;
+    --danger: #c0392b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  .container { max-width: 600px; margin: 0 auto; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+  .employee-banner {
+    background: var(--primary-light);
+    border: 1px solid #c2d9ca;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .employee-banner .avatar {
+    width: 40px; height: 40px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px;
+  }
+
+  .employee-banner .name { font-weight: 600; font-size: 15px; }
+  .employee-banner .meta { font-size: 13px; color: var(--muted); }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+  .hint { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+
+  input[type="text"], input[type="email"], input[type="date"], input[type="number"], select, textarea {
+    width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: #fafafa; transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); background: #fff; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .radio-group { display: flex; gap: 16px; margin-top: 2px; }
+  .radio-group label { display: flex; align-items: center; gap: 6px; font-weight: 400; font-size: 14px; cursor: pointer; }
+
+  input[type="radio"], input[type="checkbox"] { accent-color: var(--primary); width: 16px; height: 16px; }
+
+  .checkbox-label { display: flex; align-items: flex-start; gap: 8px; font-weight: 400; font-size: 14px; cursor: pointer; }
+  .checkbox-label input { margin-top: 3px; }
+
+  .required::after { content: ' *'; color: var(--danger); }
+
+  .pay-field { display: none; }
+  .pay-field.active { display: block; }
+
+  .add-btn {
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    padding: 7px 14px; border: 1px dashed var(--border); border-radius: 6px;
+    background: #fafafa; color: var(--primary); cursor: pointer; transition: background 0.2s, border-color 0.2s;
+  }
+  .add-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+
+  .rate-row {
+    display: grid; grid-template-columns: 1fr 120px 32px;
+    gap: 10px; align-items: end; margin-bottom: 12px;
+  }
+  .rate-row input, .rate-row select {
+    width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: #fafafa;
+  }
+
+  .remove-btn {
+    width: 32px; height: 42px; border: none; background: none;
+    color: var(--muted); font-size: 18px; cursor: pointer; border-radius: 6px;
+    transition: color 0.2s, background 0.2s; display: flex; align-items: center; justify-content: center;
+  }
+  .remove-btn:hover { color: var(--danger); background: #fde8e8; }
+
+  .info-box {
+    padding: 12px 14px; background: var(--primary-light); border-radius: 8px;
+    font-size: 13px; color: var(--primary); border: 1px solid #c8ddd0;
+  }
+
+  .conditional-section { display: none; margin-top: 18px; }
+  .conditional-section.active { display: block; }
+
+  .declaration-box {
+    padding: 16px; background: #f0faf3; border: 2px solid #b8dcc5; border-radius: 8px;
+  }
+  .declaration-box label { font-size: 14px; font-weight: 500; }
+
+  .btn {
+    display: block; width: 100%; padding: 14px; font-family: inherit;
+    font-size: 15px; font-weight: 600; color: #fff; background: var(--primary);
+    border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.2s; margin-top: 8px;
+  }
+  .btn:hover { background: #14472d; }
+
+  #success { display: none; text-align: center; padding: 60px 20px; }
+  #success .tick { width: 64px; height: 64px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 28px; }
+  #success h2 { margin-bottom: 8px; }
+  #success p { color: var(--muted); font-size: 14px; max-width: 420px; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="formArea">
+    <div class="badge">Step 2 of 2 — Employer</div>
+    <h1>Complete Onboarding</h1>
+    <p class="subtitle">Your new employee has submitted their personal details. Please complete the employment terms below to finalise onboarding.</p>
+
+    <!-- Employee banner — in production, populated from employee submission -->
+    <div class="employee-banner">
+      <div class="avatar">JS</div>
+      <div>
+        <div class="name">Jane Smith</div>
+        <div class="meta">Submitted their details on 21 Mar 2026</div>
+      </div>
+    </div>
+
+    <form id="mainForm" onsubmit="handleSubmit(event)">
+
+      <!-- Start Date -->
+      <div class="card">
+        <div class="card-title">Start Date</div>
+        <div class="field">
+          <label class="required">Employment Start Date</label>
+          <input type="date" name="start_date" required>
+        </div>
+      </div>
+
+      <!-- Working Pattern -->
+      <div class="card">
+        <div class="card-title">Working Pattern</div>
+        <div class="field">
+          <label class="required">Normal Working Days</label>
+          <div class="hint">Tick all days that apply</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px">
+            <label class="checkbox-label"><input type="checkbox" name="day_mon" value="Mon"> Mon</label>
+            <label class="checkbox-label"><input type="checkbox" name="day_tue" value="Tue"> Tue</label>
+            <label class="checkbox-label"><input type="checkbox" name="day_wed" value="Wed"> Wed</label>
+            <label class="checkbox-label"><input type="checkbox" name="day_thu" value="Thu"> Thu</label>
+            <label class="checkbox-label"><input type="checkbox" name="day_fri" value="Fri"> Fri</label>
+            <label class="checkbox-label"><input type="checkbox" name="day_sat" value="Sat"> Sat</label>
+            <label class="checkbox-label"><input type="checkbox" name="day_sun" value="Sun"> Sun</label>
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Normal Hours Per Week</label>
+          <input type="number" name="hours_per_week" step="0.5" min="0" required>
+        </div>
+      </div>
+
+      <!-- Basic Pay -->
+      <div class="card">
+        <div class="card-title">Basic Pay</div>
+        <div class="field">
+          <label class="required">Pay Basis</label>
+          <select name="pay_basis" id="payBasis" required onchange="togglePayFields()">
+            <option value="">— Select —</option>
+            <option value="salary">Salary (annual)</option>
+            <option value="hourly">Hourly rate</option>
+            <option value="daily">Daily rate</option>
+            <option value="commission">Commission only</option>
+            <option value="piece_rate">Piece rate</option>
+          </select>
+        </div>
+        <div class="field pay-field" id="f_salary">
+          <label class="required">Annual Salary (£)</label>
+          <input type="number" name="annual_salary" step="0.01" min="0">
+        </div>
+        <div class="field pay-field" id="f_hourly">
+          <label class="required">Hourly Rate (£)</label>
+          <input type="number" name="hourly_rate" step="0.01" min="0">
+        </div>
+        <div class="field pay-field" id="f_daily">
+          <label class="required">Daily Rate (£)</label>
+          <input type="number" name="daily_rate" step="0.01" min="0">
+        </div>
+        <div class="pay-field" id="f_commission">
+          <div class="hint">Commission-only employees have no fixed basic pay. Commission amounts will be entered each pay period.</div>
+        </div>
+        <div class="pay-field" id="f_piece_rate">
+          <div class="field">
+            <label class="required">Piece Description</label>
+            <div class="hint">What is each unit of work? e.g. "garment completed", "delivery", "unit packed"</div>
+            <input type="text" name="piece_description" id="pieceDesc" placeholder="e.g. garment completed">
+          </div>
+          <div class="field" style="margin-top:18px">
+            <label class="required">Amount Per Piece (£)</label>
+            <input type="number" name="piece_rate" id="pieceRate" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Pay Frequency</label>
+          <select name="pay_frequency" required>
+            <option value="">— Select —</option>
+            <option value="weekly">Weekly</option>
+            <option value="fortnightly">Fortnightly</option>
+            <option value="4weekly">4-Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Payment Method</label>
+          <select name="payment_method" required>
+            <option value="bacs" selected>BACS</option>
+            <option value="cheque">Cheque</option>
+            <option value="cash">Cash</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Additional Pay Rates -->
+      <div class="card">
+        <div class="card-title">Additional Pay Rates</div>
+        <div class="hint" style="margin-bottom:14px">Add any extra rates this employee is entitled to. Leave blank if none apply.</div>
+        <div id="additionalRates"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+          <button type="button" class="add-btn" onclick="addRate('Overtime (1x)')">+ Overtime (1x)</button>
+          <button type="button" class="add-btn" onclick="addRate('Overtime (1.5x)')">+ Overtime (1.5x)</button>
+          <button type="button" class="add-btn" onclick="addRate('Overtime (2x)')">+ Overtime (2x)</button>
+          <button type="button" class="add-btn" onclick="addRate('Key Holder')">+ Key Holder</button>
+          <button type="button" class="add-btn" onclick="addRate('')">+ Other</button>
+        </div>
+      </div>
+
+      <!-- Holiday Entitlement -->
+      <div class="card">
+        <div class="card-title">Holiday Entitlement</div>
+        <div class="field">
+          <label class="required">Holiday Basis</label>
+          <select name="holiday_basis" id="holidayBasis" required onchange="toggleHolidayFields()">
+            <option value="">— Select —</option>
+            <option value="statutory">Statutory (5.6 weeks / 28 days pro-rata)</option>
+            <option value="statutory_plus_bank">Statutory + Bank Holidays</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="field" id="customHolidayField" style="display:none;margin-top:18px">
+          <label class="required">Total Holiday Entitlement (days per year)</label>
+          <div class="hint">Including or excluding bank holidays — please specify in the notes</div>
+          <input type="number" name="custom_holiday_days" id="customHolidayDays" step="0.5" min="0">
+        </div>
+        <div id="holidayNote" class="info-box" style="display:none;margin-top:14px"></div>
+      </div>
+
+      <!-- Pension & Auto-Enrolment -->
+      <div class="card">
+        <div class="card-title">Pension</div>
+        <div class="field">
+          <label class="required">Include in Auto-Enrolment Assessment?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="auto_enrol" value="yes" required> Yes</label>
+            <label><input type="radio" name="auto_enrol" value="no"> No</label>
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Postponement Date (if applicable)</label>
+          <div class="hint">Leave blank if not postponing</div>
+          <input type="date" name="postponement_date">
+        </div>
+      </div>
+
+      <!-- NI & Age -->
+      <div class="card">
+        <div class="card-title">NI Category</div>
+        <div class="hint" style="margin-bottom:16px">These questions help determine the correct NI category for this employee. Most employees are Category A — the answers below help identify exceptions.</div>
+        <div class="field">
+          <label class="required">Is this employee under 21 years old?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="under_21" value="yes" required> Yes</label>
+            <label><input type="radio" name="under_21" value="no"> No</label>
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Is this employee an apprentice under 25?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="apprentice_u25" value="yes" required> Yes</label>
+            <label><input type="radio" name="apprentice_u25" value="no"> No</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Company Director -->
+      <div class="card">
+        <div class="card-title">Company Director</div>
+        <div class="field">
+          <label class="required">Is this employee a Company Director?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="director" value="yes" required onclick="toggleDirector(true)"> Yes</label>
+            <label><input type="radio" name="director" value="no" onclick="toggleDirector(false)"> No</label>
+          </div>
+        </div>
+        <div class="conditional-section" id="directorFields">
+          <div class="field">
+            <label class="required">Director NI Calculation Method</label>
+            <div class="hint">Annual method is the default. Pro-rata is used if the directorship started partway through the tax year.</div>
+            <select name="director_ni_method" id="directorNiMethod">
+              <option value="">— Select —</option>
+              <option value="annual">Annual</option>
+              <option value="pro_rata">Pro-rata</option>
+            </select>
+          </div>
+          <div class="field" style="margin-top:18px">
+            <label>Date Appointed as Director</label>
+            <input type="date" name="director_date">
+          </div>
+        </div>
+      </div>
+
+      <!-- TUPE -->
+      <div class="card">
+        <div class="card-title">TUPE Transfer</div>
+        <div class="field">
+          <label class="required">Is this a TUPE transfer?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="tupe" value="yes" required onclick="toggleTupe(true)"> Yes</label>
+            <label><input type="radio" name="tupe" value="no" onclick="toggleTupe(false)"> No</label>
+          </div>
+        </div>
+        <div class="conditional-section" id="tupeFields">
+          <div class="hint" style="margin-bottom:14px;color:var(--primary);font-weight:500">For TUPE transfers, we need the year-to-date figures from the previous employer's payroll</div>
+          <div class="field">
+            <label class="required">Previous Employer Name</label>
+            <input type="text" name="tupe_prev_employer">
+          </div>
+          <div class="field" style="margin-top:18px">
+            <label>Previous Payroll Reference</label>
+            <input type="text" name="tupe_prev_payroll_ref">
+          </div>
+          <div class="row" style="margin-top:18px">
+            <div class="field">
+              <label class="required">Gross Pay to Date (£)</label>
+              <input type="number" name="tupe_gross_ytd" step="0.01">
+            </div>
+            <div class="field">
+              <label class="required">Tax Deducted to Date (£)</label>
+              <input type="number" name="tupe_tax_ytd" step="0.01">
+            </div>
+          </div>
+          <div class="row" style="margin-top:18px">
+            <div class="field">
+              <label class="required">Employee NI to Date (£)</label>
+              <input type="number" name="tupe_ee_ni_ytd" step="0.01">
+            </div>
+            <div class="field">
+              <label class="required">Employer NI to Date (£)</label>
+              <input type="number" name="tupe_er_ni_ytd" step="0.01">
+            </div>
+          </div>
+          <div class="field" style="margin-top:18px">
+            <label>Employee Pension to Date (£)</label>
+            <input type="number" name="tupe_ee_pension_ytd" step="0.01">
+          </div>
+        </div>
+      </div>
+
+      <!-- Payroll Reference & Job Info -->
+      <div class="card">
+        <div class="card-title">Payroll & Job Details</div>
+        <div class="field">
+          <label>Payroll ID / Employee Reference</label>
+          <div class="hint">If your company uses employee reference numbers. Leave blank if not applicable.</div>
+          <input type="text" name="payroll_id">
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Job Title</label>
+          <input type="text" name="job_title">
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Department</label>
+          <input type="text" name="department">
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Notes for Payroll</label>
+          <div class="hint">Anything else the payroll team should know (e.g. irregular hours, allowances, bonus arrangements)</div>
+          <textarea name="notes" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Right to Work Verification -->
+      <div class="card">
+        <div class="card-title">Right to Work Verification</div>
+        <div class="hint" style="margin-bottom:14px">The employee has declared they have a legal right to work in the UK. You must verify their documentation before their start date.</div>
+        <div class="declaration-box">
+          <label class="checkbox-label">
+            <input type="checkbox" name="right_to_work_verified" required>
+            <span>I confirm that I have verified this employee's right to work in the UK, or will do so before their start date.</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Submit to Payroll →</button>
+    </form>
+  </div>
+
+  <div id="success">
+    <div class="tick">✓</div>
+    <h2>Onboarding Complete</h2>
+    <p>All details have been submitted to the payroll team at Almond Valley Accounting. They'll be in touch if anything else is needed.</p>
+  </div>
+
+</div>
+
+<script>
+var rateCount = 0;
+
+function togglePayFields() {
+  var v = document.getElementById('payBasis').value;
+  document.querySelectorAll('.pay-field').forEach(function(el) { el.classList.remove('active'); });
+  if (v === 'salary') document.getElementById('f_salary').classList.add('active');
+  if (v === 'hourly') document.getElementById('f_hourly').classList.add('active');
+  if (v === 'daily') document.getElementById('f_daily').classList.add('active');
+  if (v === 'commission') document.getElementById('f_commission').classList.add('active');
+  if (v === 'piece_rate') document.getElementById('f_piece_rate').classList.add('active');
+  document.getElementById('pieceDesc').required = (v === 'piece_rate');
+  document.getElementById('pieceRate').required = (v === 'piece_rate');
+}
+
+function addRate(preset) {
+  rateCount++;
+  var id = rateCount;
+  var container = document.getElementById('additionalRates');
+  var row = document.createElement('div');
+  row.className = 'rate-row';
+  row.id = 'rate-' + id;
+  var isOther = !preset;
+  row.innerHTML =
+    '<div>' +
+      '<label style="font-size:12px;font-weight:500;margin-bottom:4px">Description</label>' +
+      (isOther
+        ? '<input type="text" name="addrate_desc_' + id + '" placeholder="e.g. Saturday premium">'
+        : '<input type="text" name="addrate_desc_' + id + '" value="' + preset + '" readonly style="background:#eee">') +
+    '</div>' +
+    '<div>' +
+      '<label style="font-size:12px;font-weight:500;margin-bottom:4px">Rate (£/hr)</label>' +
+      '<input type="number" name="addrate_value_' + id + '" step="0.01" min="0" placeholder="0.00">' +
+    '</div>' +
+    '<button type="button" class="remove-btn" onclick="removeRate(' + id + ')" title="Remove">&times;</button>';
+  container.appendChild(row);
+}
+
+function removeRate(id) {
+  var row = document.getElementById('rate-' + id);
+  if (row) row.remove();
+}
+
+function toggleHolidayFields() {
+  var v = document.getElementById('holidayBasis').value;
+  document.getElementById('customHolidayField').style.display = v === 'custom' ? 'block' : 'none';
+  document.getElementById('customHolidayDays').required = (v === 'custom');
+  var note = document.getElementById('holidayNote');
+  if (v === 'statutory') {
+    note.style.display = 'block';
+    note.textContent = '5.6 weeks pro-rata (28 days for a full-time employee). Bank holidays are included within this entitlement.';
+  } else if (v === 'statutory_plus_bank') {
+    note.style.display = 'block';
+    note.textContent = '5.6 weeks pro-rata plus bank holidays on top. The employee gets their statutory entitlement AND paid bank holidays separately.';
+  } else {
+    note.style.display = 'none';
+  }
+}
+
+function toggleDirector(isDirector) {
+  var el = document.getElementById('directorFields');
+  el.classList.toggle('active', isDirector);
+  document.getElementById('directorNiMethod').required = isDirector;
+}
+
+function toggleTupe(isTupe) {
+  document.getElementById('tupeFields').classList.toggle('active', isTupe);
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  document.getElementById('formArea').style.display = 'none';
+  document.getElementById('success').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

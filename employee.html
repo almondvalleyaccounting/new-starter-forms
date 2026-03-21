@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Starter — Your Details</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --primary: #2c5f8a;
+    --primary-light: #e6eff6;
+    --text: #1e1e1e;
+    --muted: #6b6b6b;
+    --border: #ddd;
+    --radius: 10px;
+    --danger: #c0392b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  .container { max-width: 600px; margin: 0 auto; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--primary);
+    background: var(--primary-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+  .hint { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+
+  input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], select {
+    width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: #fafafa; transition: border-color 0.2s;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--primary); background: #fff; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .radio-group { display: flex; gap: 16px; margin-top: 2px; }
+  .radio-group label { display: flex; align-items: center; gap: 6px; font-weight: 400; font-size: 14px; cursor: pointer; }
+
+  input[type="radio"], input[type="checkbox"] { accent-color: var(--primary); width: 16px; height: 16px; }
+
+  .checkbox-label { display: flex; align-items: flex-start; gap: 8px; font-weight: 400; font-size: 14px; cursor: pointer; }
+  .checkbox-label input { margin-top: 3px; }
+
+  .required::after { content: ' *'; color: var(--danger); }
+
+  .statement-cards { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .stmt { border: 2px solid var(--border); border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: border-color 0.2s, background 0.2s; font-size: 13px; line-height: 1.5; }
+  .stmt:hover { border-color: var(--primary); }
+  .stmt.sel { border-color: var(--primary); background: var(--primary-light); }
+  .stmt strong { display: block; margin-bottom: 4px; font-size: 14px; }
+  .stmt input[type="radio"] { display: none; }
+
+  .p45-note { display: none; margin-top: 18px; padding: 14px; background: #fef9e7; border-radius: 8px; font-size: 13px; color: #7d6608; border: 1px solid #f0e6b0; }
+
+  .declaration-box { padding: 16px; background: #f0faf3; border: 2px solid #b8dcc5; border-radius: 8px; }
+  .declaration-box label { font-size: 14px; font-weight: 500; }
+
+  .optional-tag { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px; }
+
+  .btn { display: block; width: 100%; padding: 14px; font-family: inherit; font-size: 15px; font-weight: 600; color: #fff; background: var(--primary); border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+  .btn:hover { background: #1e4463; }
+
+  #success { display: none; text-align: center; padding: 60px 20px; }
+  #success .tick { width: 64px; height: 64px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 28px; }
+  #success h2 { margin-bottom: 8px; }
+  #success p { color: var(--muted); font-size: 14px; max-width: 420px; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="formArea">
+    <div class="badge">Step 1 of 2 — Employee</div>
+    <h1>Welcome — Your Details</h1>
+    <p class="subtitle">Please complete your personal details below. Once submitted, your employer will be notified to complete the final onboarding step.</p>
+
+    <form id="mainForm" onsubmit="handleSubmit(event)">
+
+      <!-- Employer Notification -->
+      <div class="card">
+        <div class="card-title">Employer Notification</div>
+        <div class="field">
+          <label class="required">Employer Email</label>
+          <div class="hint">Your employer will be notified at this address to complete onboarding. It has been pre-filled — only change it if your employer has given you a different contact.</div>
+          <!-- In production this is populated from the employer setup -->
+          <input type="email" name="employer_email" id="employerEmail" value="" placeholder="employer@company.com" required>
+        </div>
+      </div>
+
+      <!-- Personal Details -->
+      <div class="card">
+        <div class="card-title">Personal Information</div>
+        <div class="field">
+          <label class="required">Title</label>
+          <select name="title" required>
+            <option value="">— Select —</option>
+            <option>Mr</option><option>Mrs</option><option>Ms</option><option>Miss</option><option>Mx</option><option>Dr</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:18px">
+          <div class="field">
+            <label class="required">First Name</label>
+            <input type="text" name="first_name" required>
+          </div>
+          <div class="field">
+            <label>Middle Name(s)</label>
+            <input type="text" name="middle_names">
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Surname</label>
+          <input type="text" name="surname" required>
+        </div>
+        <div class="row" style="margin-top:18px">
+          <div class="field">
+            <label class="required">Date of Birth</label>
+            <input type="date" name="dob" required>
+          </div>
+          <div class="field">
+            <label class="required">Gender</label>
+            <select name="gender" required>
+              <option value="">— Select —</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">National Insurance Number</label>
+          <div class="hint">Format: QQ 12 34 56 A</div>
+          <input type="text" name="ni_number" placeholder="e.g. AB 12 34 56 C" required>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="card">
+        <div class="card-title">Address</div>
+        <div class="field">
+          <label class="required">Address Line 1</label>
+          <input type="text" name="address1" required>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Address Line 2</label>
+          <input type="text" name="address2">
+        </div>
+        <div class="row" style="margin-top:18px">
+          <div class="field">
+            <label class="required">Town / City</label>
+            <input type="text" name="city" required>
+          </div>
+          <div class="field">
+            <label>County</label>
+            <input type="text" name="county">
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Postcode</label>
+          <input type="text" name="postcode" required>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="card">
+        <div class="card-title">Contact Details</div>
+        <div class="field">
+          <label class="required">Email Address</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Phone Number</label>
+          <input type="tel" name="phone" required>
+        </div>
+      </div>
+
+      <!-- Bank Details -->
+      <div class="card">
+        <div class="card-title">Bank Details</div>
+        <div class="field">
+          <label class="required">Bank Name</label>
+          <input type="text" name="bank_name" required>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label class="required">Account Holder Name</label>
+          <input type="text" name="account_name" required>
+        </div>
+        <div class="row" style="margin-top:18px">
+          <div class="field">
+            <label class="required">Sort Code</label>
+            <input type="text" name="sort_code" placeholder="e.g. 12-34-56" required>
+          </div>
+          <div class="field">
+            <label class="required">Account Number</label>
+            <input type="text" name="account_number" required>
+          </div>
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Building Society Reference</label>
+          <div class="hint">Only if paying into a building society account</div>
+          <input type="text" name="building_soc_ref">
+        </div>
+      </div>
+
+      <!-- P45 / Starter Statement -->
+      <div class="card">
+        <div class="card-title">Tax — P45 or Starter Declaration</div>
+        <div class="field">
+          <label class="required">Do you have a P45 from your previous employer?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="has_p45" value="yes" required onclick="toggleP45(true)"> Yes</label>
+            <label><input type="radio" name="has_p45" value="no" onclick="toggleP45(false)"> No</label>
+          </div>
+        </div>
+
+        <div id="p45Fields" style="display:none;margin-top:18px">
+          <div class="hint" style="margin-bottom:14px;color:#2c5f8a;font-weight:500">Please enter the details exactly as shown on your P45</div>
+          <div class="field">
+            <label class="required">Previous Employer PAYE Reference</label>
+            <input type="text" name="p45_paye_ref">
+          </div>
+          <div class="field" style="margin-top:18px">
+            <label class="required">Leaving Date</label>
+            <input type="date" name="p45_leaving_date">
+          </div>
+          <div class="row" style="margin-top:18px">
+            <div class="field">
+              <label class="required">Tax Code</label>
+              <input type="text" name="p45_tax_code" placeholder="e.g. 1257L">
+            </div>
+            <div class="field">
+              <label class="required">Week 1 / Month 1?</label>
+              <div class="radio-group">
+                <label><input type="radio" name="p45_w1m1" value="yes"> Yes</label>
+                <label><input type="radio" name="p45_w1m1" value="no"> No</label>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="margin-top:18px">
+            <div class="field">
+              <label class="required">Total Pay to Date (£)</label>
+              <input type="number" name="p45_total_pay" step="0.01">
+            </div>
+            <div class="field">
+              <label class="required">Total Tax to Date (£)</label>
+              <input type="number" name="p45_total_tax" step="0.01">
+            </div>
+          </div>
+        </div>
+
+        <div id="starterStatement" style="margin-top:18px">
+          <label class="required">If you do not have a P45, select the statement that applies to you:</label>
+          <div class="statement-cards">
+            <div class="stmt" id="stmtA" onclick="pickStmt('A')">
+              <input type="radio" name="starter_statement" value="A">
+              <strong>Statement A</strong>
+              This is my first job since last 6 April and I have not been receiving taxable Jobseeker's Allowance, Employment and Support Allowance, taxable Incapacity Benefit, State Pension, or Occupational Pension.
+            </div>
+            <div class="stmt" id="stmtB" onclick="pickStmt('B')">
+              <input type="radio" name="starter_statement" value="B">
+              <strong>Statement B</strong>
+              This is not my first job since last 6 April but since then I have not been receiving taxable Jobseeker's Allowance, Employment and Support Allowance, taxable Incapacity Benefit, State Pension, or Occupational Pension.
+            </div>
+            <div class="stmt" id="stmtC" onclick="pickStmt('C')">
+              <input type="radio" name="starter_statement" value="C">
+              <strong>Statement C</strong>
+              I have another job or receive a State Pension or Occupational Pension.
+            </div>
+          </div>
+        </div>
+
+        <div class="p45-note" id="p45Note">
+          If you have a P45 you do not need to select a starter statement — we'll use the tax code from your P45.
+        </div>
+      </div>
+
+      <!-- Student Loan -->
+      <div class="card">
+        <div class="card-title">Student Loan</div>
+        <div class="field">
+          <label class="required">Do you have a student loan?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="student_loan" value="yes" required onclick="toggleStudentLoan(true)"> Yes</label>
+            <label><input type="radio" name="student_loan" value="no" onclick="toggleStudentLoan(false)"> No</label>
+          </div>
+        </div>
+        <div id="studentLoanFields" style="display:none;margin-top:18px">
+          <div class="field">
+            <label class="required">Student Loan Plan Type</label>
+            <div class="hint">Check your Student Loans Company correspondence if unsure</div>
+            <select name="student_loan_plan" id="studentPlan">
+              <option value="">— Select —</option>
+              <option value="plan1">Plan 1 (England/Wales before Sept 2012, or Northern Ireland)</option>
+              <option value="plan2">Plan 2 (England/Wales after Sept 2012)</option>
+              <option value="plan4">Plan 4 (Scotland)</option>
+              <option value="plan5">Plan 5 (England/Wales after Sept 2023)</option>
+            </select>
+          </div>
+          <div class="field" style="margin-top:18px">
+            <label class="required">Do you also have a Postgraduate Loan?</label>
+            <div class="hint">This is separate from your undergraduate student loan</div>
+            <div class="radio-group">
+              <label><input type="radio" name="postgrad_loan" value="yes"> Yes</label>
+              <label><input type="radio" name="postgrad_loan" value="no"> No</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emergency Contact -->
+      <div class="card">
+        <div class="card-title">Emergency Contact <span class="optional-tag">Optional</span></div>
+        <div class="hint" style="margin-bottom:16px">Not required for payroll, but your employer may find this useful to have on file.</div>
+        <div class="field">
+          <label>Contact Name</label>
+          <input type="text" name="emergency_name">
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Relationship</label>
+          <input type="text" name="emergency_relationship" placeholder="e.g. Spouse, Parent, Partner">
+        </div>
+        <div class="field" style="margin-top:18px">
+          <label>Contact Phone Number</label>
+          <input type="tel" name="emergency_phone">
+        </div>
+      </div>
+
+      <!-- Right to Work -->
+      <div class="card">
+        <div class="card-title">Right to Work Declaration</div>
+        <div class="declaration-box">
+          <label class="checkbox-label">
+            <input type="checkbox" name="right_to_work_declaration" required>
+            <span>I confirm that I have a legal right to work in the United Kingdom. I understand that my employer is required to verify this before my start date, and I agree to provide the necessary documentation.</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">Submit My Details →</button>
+    </form>
+  </div>
+
+  <div id="success">
+    <div class="tick">✓</div>
+    <h2>Thank You</h2>
+    <p>Your details have been submitted. Your employer has been notified by email to complete the final onboarding step. You don't need to do anything else.</p>
+  </div>
+
+</div>
+
+<script>
+function toggleP45(hasP45) {
+  document.getElementById('p45Fields').style.display = hasP45 ? 'block' : 'none';
+  document.getElementById('p45Note').style.display = hasP45 ? 'block' : 'none';
+  document.getElementById('starterStatement').style.display = hasP45 ? 'none' : 'block';
+}
+
+function pickStmt(letter) {
+  ['A','B','C'].forEach(function(l) {
+    var el = document.getElementById('stmt' + l);
+    var selected = l === letter;
+    el.classList.toggle('sel', selected);
+    el.querySelector('input[type=radio]').checked = selected;
+  });
+}
+
+function toggleStudentLoan(hasLoan) {
+  document.getElementById('studentLoanFields').style.display = hasLoan ? 'block' : 'none';
+  document.getElementById('studentPlan').required = hasLoan;
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  document.getElementById('formArea').style.display = 'none';
+  document.getElementById('success').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
