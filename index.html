@@ -13,6 +13,8 @@
     --green-light: #e8f0eb;
     --blue: #2c5f8a;
     --blue-light: #e6eff6;
+    --purple: #6b3fa0;
+    --purple-light: #f0ebf7;
     --text: #1e1e1e;
     --muted: #6b6b6b;
     --border: #ddd;
@@ -32,85 +34,43 @@
 
   .container { max-width: 640px; margin: 0 auto; }
 
-  .logo-area {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .logo-area h1 {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  .logo-area p {
-    color: var(--muted);
-    font-size: 14px;
-  }
+  .logo-area { text-align: center; margin-bottom: 40px; }
+  .logo-area h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .logo-area p { color: var(--muted); font-size: 14px; }
 
   .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--muted);
-    margin-bottom: 14px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--muted); margin-bottom: 14px;
   }
 
   .flow-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 16px;
-    display: flex;
-    gap: 18px;
-    align-items: flex-start;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 16px; display: flex; gap: 18px; align-items: flex-start;
     transition: box-shadow 0.2s;
   }
-
-  .flow-card:hover {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  }
+  .flow-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 
   .step-number {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 16px;
-    flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px; flex-shrink: 0;
   }
 
+  .step-0 .step-number { background: var(--purple-light); color: var(--purple); }
   .step-1 .step-number { background: var(--blue-light); color: var(--blue); }
   .step-2 .step-number { background: var(--green-light); color: var(--green); }
   .step-3 .step-number { background: #fef3e0; color: #b8860b; }
 
-  .flow-card h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-
-  .flow-card p {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 12px;
-  }
+  .flow-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .flow-card p { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
 
   .flow-card a {
-    display: inline-block;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: background 0.2s;
+    display: inline-block; font-size: 13px; font-weight: 600; text-decoration: none;
+    padding: 8px 16px; border-radius: 8px; transition: background 0.2s;
   }
 
+  .link-purple { background: var(--purple-light); color: var(--purple); }
+  .link-purple:hover { background: #e0d4f0; }
   .link-blue { background: var(--blue-light); color: var(--blue); }
   .link-blue:hover { background: #d0e2f0; }
   .link-green { background: var(--green-light); color: var(--green); }
@@ -118,52 +78,23 @@
   .link-amber { background: #fef3e0; color: #b8860b; }
   .link-amber:hover { background: #fde8c5; }
 
-  .connector {
-    width: 2px;
-    height: 24px;
-    background: var(--border);
-    margin: 0 0 0 43px;
-  }
+  .connector { width: 2px; height: 24px; background: var(--border); margin: 0 0 0 43px; }
 
   .info-section {
-    margin-top: 40px;
-    padding: 24px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    margin-top: 40px; padding: 24px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
   }
+  .info-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .info-section p, .info-section li { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .info-section ol { padding-left: 20px; }
+  .info-section li { margin-bottom: 6px; }
 
-  .info-section h3 {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 14px;
+  .live-banner {
+    background: var(--green-light); border: 1px solid #b8dcc5; border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 32px; text-align: center;
   }
-
-  .info-section p, .info-section li {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  .info-section ol {
-    padding-left: 20px;
-  }
-
-  .info-section li {
-    margin-bottom: 6px;
-  }
-
-  .poc-banner {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 32px;
-    text-align: center;
-  }
-
-  .poc-banner strong { color: #856404; font-size: 13px; }
-  .poc-banner p { color: #856404; font-size: 12px; margin-top: 4px; }
+  .live-banner strong { color: var(--green); font-size: 13px; }
+  .live-banner p { color: var(--green); font-size: 12px; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -174,19 +105,30 @@
     <p>Almond Valley Accounting — Payroll Team</p>
   </div>
 
-  <div class="poc-banner">
-    <strong>Proof of Concept</strong>
-    <p>Forms are functional but not yet connected to a backend. Data does not save. For review purposes only.</p>
+  <div class="live-banner">
+    <strong>Connected to Google Sheets Backend</strong>
+    <p>Forms are now live and will save data to your AVA.Payroll Shared Drive.</p>
   </div>
 
-  <div class="section-label">How it works</div>
+  <div class="section-label">The Process</div>
+
+  <div class="flow-card step-0">
+    <div class="step-number">0</div>
+    <div>
+      <h3>Set Up a New Employer</h3>
+      <p>Your team creates an employer account. This generates a Google Sheet and a unique employee form link that the employer can share with new starters.</p>
+      <a href="admin.html" class="link-purple">Open Admin Panel →</a>
+    </div>
+  </div>
+
+  <div class="connector"></div>
 
   <div class="flow-card step-1">
     <div class="step-number">1</div>
     <div>
       <h3>Employee Fills In Their Details</h3>
-      <p>The employer shares a unique link with their new starter. The employee completes their personal details, bank info, tax status, and student loan information.</p>
-      <a href="employee.html" class="link-blue">Open Employee Form →</a>
+      <p>The employer shares the unique link with their new starter. The employee completes personal details, bank info, tax status, and student loan information. The employer is notified by email.</p>
+      <a href="employee.html" class="link-blue">Preview Employee Form →</a>
     </div>
   </div>
 
@@ -196,8 +138,8 @@
     <div class="step-number">2</div>
     <div>
       <h3>Employer Completes Onboarding</h3>
-      <p>The employer is notified by email that their new starter has submitted details. They click through to complete pay, working pattern, holiday, and other employment terms.</p>
-      <a href="employer.html" class="link-green">Open Employer Form →</a>
+      <p>The employer clicks the link in their email notification and adds pay, working pattern, holiday, director status, TUPE details, and verifies right to work. Your payroll team is then notified.</p>
+      <a href="employer.html" class="link-green">Preview Employer Form →</a>
     </div>
   </div>
 
@@ -207,18 +149,18 @@
     <div class="step-number">3</div>
     <div>
       <h3>Payroll Team Processes</h3>
-      <p>Both sets of data land in a Google Sheet (one per employer). Your team is notified, exports to CSV, and imports into BrightPay. The record moves to the Existing Employees tab.</p>
-      <a href="#" class="link-amber" onclick="alert('Admin form coming next — this will create new employer sheets');return false;">Admin Setup (Coming Soon) →</a>
+      <p>Both sets of data land in the employer's Google Sheet. Open the sheet, use the Payroll menu to export to BrightPay CSV, and the record automatically moves to the Existing Employees tab.</p>
     </div>
   </div>
 
   <div class="info-section">
-    <h3>What's Next</h3>
+    <h3>Quick Start Guide</h3>
     <ol>
-      <li><strong>Review both forms</strong> — check every field, the conditional logic (P45/statement, TUPE, director, pay types), and the overall flow.</li>
-      <li><strong>Admin setup form</strong> — a simple page where your team enters an employer name and default email. This creates the Google Sheet and generates the unique employee form link.</li>
-      <li><strong>Google Apps Script backend</strong> — connects both forms to Google Sheets, sends email notifications, and runs the hourly check for new starters.</li>
-      <li><strong>CSV export & archive</strong> — one-click export to BrightPay-formatted CSV, with automatic move to the Existing Employees tab and timestamping.</li>
+      <li><strong>Go to the Admin Panel</strong> and create your first employer — enter their name and email.</li>
+      <li><strong>Copy the employee form link</strong> and send it to the employer (or directly to their new starter).</li>
+      <li><strong>The employee fills in the form</strong> — the employer gets an email notification with a link to complete onboarding.</li>
+      <li><strong>The employer fills in their form</strong> — payroll@almondvalleyaccounting.co.uk gets an email notification.</li>
+      <li><strong>Open the Google Sheet</strong> → click Payroll menu → Export & Archive to get the BrightPay CSV.</li>
     </ol>
   </div>
 

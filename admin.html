@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — New Starter Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --primary: #6b3fa0;
+    --primary-light: #f0ebf7;
+    --text: #1e1e1e;
+    --muted: #6b6b6b;
+    --border: #ddd;
+    --radius: 10px;
+    --danger: #c0392b;
+    --green: #1a5c3a;
+    --green-light: #e8f0eb;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  .container { max-width: 640px; margin: 0 auto; }
+
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--primary); background: var(--primary-light);
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 12px;
+  }
+
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 24px; margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 20px;
+    padding-bottom: 10px; border-bottom: 1px solid #eee;
+  }
+
+  .field { margin-bottom: 18px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+  .hint { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+
+  input[type="text"], input[type="email"] {
+    width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px; background: #fafafa; transition: border-color 0.2s;
+  }
+  input:focus { outline: none; border-color: var(--primary); background: #fff; }
+
+  .required::after { content: ' *'; color: var(--danger); }
+
+  .btn {
+    display: block; width: 100%; padding: 14px; font-family: inherit;
+    font-size: 15px; font-weight: 600; color: #fff; background: var(--primary);
+    border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.2s; margin-top: 8px;
+  }
+  .btn:hover { background: #5a3488; }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  #result {
+    display: none; margin-top: 20px;
+  }
+
+  .result-card {
+    background: var(--green-light); border: 1px solid #b8dcc5;
+    border-radius: var(--radius); padding: 24px;
+  }
+
+  .result-card h3 { font-size: 16px; font-weight: 700; color: var(--green); margin-bottom: 12px; }
+
+  .result-field { margin-bottom: 14px; }
+  .result-field label { font-size: 12px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-field .value {
+    font-size: 14px; padding: 10px 12px; background: #fff; border: 1px solid #c8ddd0;
+    border-radius: 8px; word-break: break-all; position: relative;
+  }
+
+  .copy-btn {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-family: inherit; font-size: 12px; font-weight: 600; padding: 4px 10px;
+    background: var(--green); color: #fff; border: none; border-radius: 6px;
+    cursor: pointer;
+  }
+  .copy-btn:hover { background: #14472d; }
+
+  .divider {
+    height: 1px; background: var(--border); margin: 32px 0;
+  }
+
+  .employer-list-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 16px;
+  }
+
+  #employerList { min-height: 40px; }
+
+  .employer-item {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 20px; margin-bottom: 12px;
+  }
+
+  .employer-item h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .employer-item p { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+
+  .employer-item .links { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .small-btn {
+    font-family: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px;
+    border-radius: 6px; border: none; cursor: pointer; text-decoration: none;
+    display: inline-block; transition: background 0.2s;
+  }
+
+  .small-btn.purple { background: var(--primary-light); color: var(--primary); }
+  .small-btn.purple:hover { background: #e0d4f0; }
+  .small-btn.green { background: var(--green-light); color: var(--green); }
+  .small-btn.green:hover { background: #d0e5d6; }
+
+  .loading { color: var(--muted); font-size: 13px; font-style: italic; }
+  .empty { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="badge">Admin Panel</div>
+  <h1>New Starter Onboarding</h1>
+  <p class="subtitle">Create new employer accounts and manage existing ones. Only for use by the Almond Valley Accounting payroll team.</p>
+
+  <!-- Create Employer -->
+  <div class="card">
+    <div class="card-title">Create New Employer</div>
+    <form id="createForm" onsubmit="handleCreate(event)">
+      <div class="field">
+        <label class="required">Employer Name</label>
+        <div class="hint">As it should appear on reports and communications</div>
+        <input type="text" name="employer_name" id="employerName" required placeholder="e.g. Acme Ltd">
+      </div>
+      <div class="field" style="margin-top:18px">
+        <label class="required">Employer Default Email</label>
+        <div class="hint">Where employee form submissions will be notified. This will be pre-filled on the employee form but can be changed by the employee if needed.</div>
+        <input type="email" name="employer_email" id="employerEmailInput" required placeholder="e.g. hr@acme.co.uk">
+      </div>
+      <button type="submit" class="btn" id="createBtn">Create Employer →</button>
+    </form>
+  </div>
+
+  <!-- Result -->
+  <div id="result">
+    <div class="result-card">
+      <h3>✓ Employer Created</h3>
+      <div class="result-field">
+        <label>Employer Name</label>
+        <div class="value" id="resName"></div>
+      </div>
+      <div class="result-field">
+        <label>Employee Form Link — share this with the employer</label>
+        <div class="value" style="padding-right:80px" id="resLink">
+          <span id="resLinkText"></span>
+          <button class="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
+      <div class="result-field">
+        <label>Google Sheet</label>
+        <div class="value">
+          <a id="resSheet" href="#" target="_blank" style="color:var(--green);text-decoration:none;font-weight:500;">Open Sheet →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Existing Employers -->
+  <div class="employer-list-title">Existing Employers</div>
+  <div id="employerList">
+    <div class="loading">Loading employers...</div>
+  </div>
+
+</div>
+
+<script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbwo9ocxEo501JfSgzpFgeMbSzj9fn2HvaShBjH26oYY3x30WCVdBbTIgGFciRLjnHBEgA/exec';
+
+// Load existing employers on page load
+loadEmployers();
+
+function loadEmployers() {
+  var listEl = document.getElementById('employerList');
+  listEl.innerHTML = '<div class="loading">Loading employers...</div>';
+
+  fetch(API_URL + '?action=list_employers')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.success || !data.employers || data.employers.length === 0) {
+        listEl.innerHTML = '<div class="empty">No employers set up yet. Create one above.</div>';
+        return;
+      }
+
+      var html = '';
+      data.employers.forEach(function(emp) {
+        html += '<div class="employer-item">' +
+          '<h4>' + escapeHtml(emp.name) + '</h4>' +
+          '<p>' + escapeHtml(emp.email) + '</p>' +
+          '<div class="links">' +
+            '<a class="small-btn purple" href="' + escapeHtml(emp.employee_form_url) + '" target="_blank">Employee Form Link</a>' +
+            '<a class="small-btn green" href="' + escapeHtml(emp.sheet_url) + '" target="_blank">Google Sheet</a>' +
+            '<button class="small-btn purple" onclick="copyText(\'' + escapeHtml(emp.employee_form_url) + '\')">Copy Link</button>' +
+          '</div>' +
+        '</div>';
+      });
+
+      listEl.innerHTML = html;
+    })
+    .catch(function(err) {
+      listEl.innerHTML = '<div class="empty">Could not load employers. Check the Apps Script deployment. (' + err + ')</div>';
+    });
+}
+
+function handleCreate(e) {
+  e.preventDefault();
+
+  var name = document.getElementById('employerName').value.trim();
+  var email = document.getElementById('employerEmailInput').value.trim();
+  var btn = document.getElementById('createBtn');
+
+  btn.textContent = 'Creating...';
+  btn.disabled = true;
+
+  var payload = {
+    action: 'create_employer',
+    employer_name: name,
+    employer_email: email
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(function() {
+    // With no-cors we can't read the response, so we show a generic success
+    // and reload the employer list after a short delay to let the script finish
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('resName').textContent = name;
+    document.getElementById('resLinkText').textContent = 'Loading... (refresh the page in a few seconds to see the link)';
+    document.getElementById('resSheet').textContent = 'Loading...';
+    document.getElementById('resSheet').href = '#';
+
+    btn.textContent = 'Create Employer →';
+    btn.disabled = false;
+    document.getElementById('createForm').reset();
+
+    // Reload employer list after a delay to pick up the new one
+    setTimeout(function() {
+      loadEmployers();
+      // Also try to update the result card
+      fetch(API_URL + '?action=list_employers')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.employers) {
+            for (var i = 0; i < data.employers.length; i++) {
+              if (data.employers[i].name === name) {
+                document.getElementById('resLinkText').textContent = data.employers[i].employee_form_url;
+                document.getElementById('resSheet').textContent = 'Open Sheet →';
+                document.getElementById('resSheet').href = data.employers[i].sheet_url;
+                break;
+              }
+            }
+          }
+        })
+        .catch(function() {});
+    }, 5000);
+  })
+  .catch(function(err) {
+    alert('Error creating employer: ' + err + '\n\nMake sure the Apps Script is deployed correctly.');
+    btn.textContent = 'Create Employer →';
+    btn.disabled = false;
+  });
+}
+
+function copyLink() {
+  var text = document.getElementById('resLinkText').textContent;
+  copyText(text);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(function() {
+    // Brief visual feedback
+    var btn = event.target;
+    var original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = original; }, 1500);
+  });
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
