@@ -130,6 +130,8 @@
   .small-btn.purple:hover { background: #e0d4f0; }
   .small-btn.green { background: var(--green-light); color: var(--green); }
   .small-btn.green:hover { background: #d0e5d6; }
+  .small-btn.amber { background: #fef3e0; color: #b8860b; }
+  .small-btn.amber:hover { background: #fde8c5; }
 
   .loading { color: var(--muted); font-size: 13px; font-style: italic; }
   .empty { color: var(--muted); font-size: 13px; }
@@ -221,6 +223,7 @@ function loadEmployers() {
             '<a class="small-btn purple" href="' + escapeHtml(emp.employee_form_url) + '" target="_blank">Employee Form Link</a>' +
             '<a class="small-btn green" href="' + escapeHtml(emp.sheet_url) + '" target="_blank">Google Sheet</a>' +
             '<button class="small-btn purple" onclick="copyText(\'' + escapeHtml(emp.employee_form_url) + '\')">Copy Link</button>' +
+            '<button class="small-btn amber" onclick="exportCsv(\'' + escapeHtml(emp.sheet_id) + '\', \'' + escapeHtml(emp.name) + '\', this)">Export CSV</button>' +
           '</div>' +
         '</div>';
       });
@@ -302,11 +305,60 @@ function copyLink() {
 
 function copyText(text) {
   navigator.clipboard.writeText(text).then(function() {
-    // Brief visual feedback
     var btn = event.target;
     var original = btn.textContent;
     btn.textContent = 'Copied!';
     setTimeout(function() { btn.textContent = original; }, 1500);
+  });
+}
+
+function exportCsv(sheetId, employerName, btn) {
+  var original = btn.textContent;
+  btn.textContent = 'Exporting...';
+  btn.disabled = true;
+
+  var payload = {
+    action: 'export_csv',
+    sheet_id: sheetId
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      btn.textContent = '✓ Exported';
+      btn.style.background = '#d4edda';
+      btn.style.color = '#155724';
+
+      // Open the download
+      window.open(data.download_url, '_blank');
+
+      alert('Export complete!\n\n' +
+        '• ' + data.records_exported + ' record(s) exported\n' +
+        '• File: ' + data.file_name + '\n' +
+        '• Records moved to Existing Employees tab\n\n' +
+        'The CSV file should be downloading now. It\'s also saved in your Employer Sheets folder on Google Drive.');
+
+      setTimeout(function() {
+        btn.textContent = original;
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.disabled = false;
+      }, 3000);
+    } else {
+      alert(data.error || 'Export failed.');
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  })
+  .catch(function(err) {
+    alert('Export failed: ' + err);
+    btn.textContent = original;
+    btn.disabled = false;
   });
 }
 

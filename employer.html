@@ -170,12 +170,12 @@
     <h1>Complete Onboarding</h1>
     <p class="subtitle">Your new employee has submitted their personal details. Please complete the employment terms below to finalise onboarding.</p>
 
-    <!-- Employee banner — in production, populated from employee submission -->
+    <!-- Employee banner — populated from Google Sheet -->
     <div class="employee-banner">
-      <div class="avatar">JS</div>
+      <div class="avatar" id="bannerInitials">...</div>
       <div>
-        <div class="name">Jane Smith</div>
-        <div class="meta">Submitted their details on 21 Mar 2026</div>
+        <div class="name" id="bannerName">Loading employee details...</div>
+        <div class="meta" id="bannerMeta"></div>
       </div>
     </div>
 
@@ -472,9 +472,31 @@ var SHEET_ID = urlParams.get('eid') || '';
 var ROW_NUMBER = urlParams.get('row') || '';
 
 // Load employee name into the banner
-if (SHEET_ID) {
-  // In production, we'd fetch the employee name from the sheet
-  // For now the banner shows placeholder data
+if (SHEET_ID && ROW_NUMBER) {
+  fetch(API_URL + '?action=get_employee&eid=' + SHEET_ID + '&row=' + ROW_NUMBER)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        var fullName = (data.first_name || '') + ' ' + (data.surname || '');
+        var initials = ((data.first_name || '?')[0] + (data.surname || '?')[0]).toUpperCase();
+        document.getElementById('bannerName').textContent = fullName.trim();
+        document.getElementById('bannerInitials').textContent = initials;
+
+        if (data.submitted) {
+          var d = new Date(data.submitted);
+          var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          var formatted = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+          document.getElementById('bannerMeta').textContent = 'Submitted their details on ' + formatted;
+        }
+      } else {
+        document.getElementById('bannerName').textContent = 'Employee';
+        document.getElementById('bannerInitials').textContent = '?';
+      }
+    })
+    .catch(function() {
+      document.getElementById('bannerName').textContent = 'Employee';
+      document.getElementById('bannerInitials').textContent = '?';
+    });
 }
 
 var rateCount = 0;
