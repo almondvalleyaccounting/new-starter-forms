@@ -495,7 +495,7 @@
 </div>
 
 <script>
-var API_URL = 'https://script.google.com/macros/s/AKfycbwo9ocxEo501JfSgzpFgeMbSzj9fn2HvaShBjH26oYY3x30WCVdBbTIgGFciRLjnHBEgA/exec';
+var API_URL = 'https://script.google.com/macros/s/AKfycbyOyiUQVgAL2uE6Ot8J38syeKxNGhtXk5AQCGyLclPYM3kQgMfNZtcVqEjBK-uLEWQk/exec';
 
 var urlParams = new URLSearchParams(window.location.search);
 var SHEET_ID = urlParams.get('eid') || '';
@@ -513,10 +513,7 @@ if (SHEET_ID && ROW_NUMBER) {
         document.getElementById('bannerInitials').textContent = initials;
 
         if (data.submitted) {
-          var d = new Date(data.submitted);
-          var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-          var formatted = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
-          document.getElementById('bannerMeta').textContent = 'Submitted their details on ' + formatted;
+          document.getElementById('bannerMeta').textContent = 'Submitted their details on ' + data.submitted;
         }
       } else {
         document.getElementById('bannerName').textContent = 'Employee';
