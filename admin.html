@@ -227,6 +227,12 @@ function doLogin() {
   ADMIN_KEY = pwd;
   document.getElementById('loginError').style.display = 'none';
 
+  // Show loading state
+  var loginBtn = document.querySelector('#loginGate .btn');
+  loginBtn.textContent = 'Logging in — loading employers (this takes up to a minute)...';
+  loginBtn.disabled = true;
+  document.getElementById('adminPassword').disabled = true;
+
   // Test the key by trying to list employers
   fetch(API_URL + '?action=list_employers&key=' + encodeURIComponent(ADMIN_KEY))
     .then(function(r) { return r.json(); })
@@ -234,19 +240,24 @@ function doLogin() {
       if (data.success) {
         document.getElementById('loginGate').style.display = 'none';
         document.getElementById('adminMain').style.display = 'block';
-        // Store in session so refreshes don't require re-login
         sessionStorage.setItem('ava_admin_key', ADMIN_KEY);
         renderEmployers(data);
       } else {
         document.getElementById('loginError').textContent = 'Incorrect password. Please try again.';
         document.getElementById('loginError').style.display = 'block';
         ADMIN_KEY = '';
+        loginBtn.textContent = 'Log In →';
+        loginBtn.disabled = false;
+        document.getElementById('adminPassword').disabled = false;
       }
     })
     .catch(function(err) {
       document.getElementById('loginError').textContent = 'Could not connect. Check your internet connection.';
       document.getElementById('loginError').style.display = 'block';
       ADMIN_KEY = '';
+      loginBtn.textContent = 'Log In →';
+      loginBtn.disabled = false;
+      document.getElementById('adminPassword').disabled = false;
     });
 }
 
