@@ -140,6 +140,24 @@
 <body>
 <div class="container">
 
+  <!-- Login Gate -->
+  <div id="loginGate">
+    <div class="badge">Admin Panel</div>
+    <h1>New Starter Onboarding</h1>
+    <p class="subtitle">Enter the admin password to continue.</p>
+    <div class="card">
+      <div class="field">
+        <label class="required">Admin Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn" onclick="doLogin()" style="margin-top:12px">Log In →</button>
+      <div id="loginError" style="display:none;color:#c0392b;font-size:13px;margin-top:10px;font-weight:500"></div>
+    </div>
+  </div>
+
+  <!-- Main Admin (hidden until logged in) -->
+  <div id="adminMain" style="display:none">
+
   <div class="badge">Admin Panel</div>
   <h1>New Starter Onboarding</h1>
   <p class="subtitle">Create new employer accounts and manage existing ones. Only for use by the Almond Valley Accounting payroll team.</p>
@@ -194,45 +212,92 @@
     <div class="loading">Loading employers...</div>
   </div>
 
+  </div><!-- end adminMain -->
+
 </div>
 
 <script>
 var API_URL = 'https://script.google.com/macros/s/AKfycbwo9ocxEo501JfSgzpFgeMbSzj9fn2HvaShBjH26oYY3x30WCVdBbTIgGFciRLjnHBEgA/exec';
+var ADMIN_KEY = '';
 
-// Load existing employers on page load
-loadEmployers();
+function doLogin() {
+  var pwd = document.getElementById('adminPassword').value.trim();
+  if (!pwd) return;
+
+  ADMIN_KEY = pwd;
+  document.getElementById('loginError').style.display = 'none';
+
+  // Test the key by trying to list employers
+  fetch(API_URL + '?action=list_employers&key=' + encodeURIComponent(ADMIN_KEY))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        document.getElementById('loginGate').style.display = 'none';
+        document.getElementById('adminMain').style.display = 'block';
+        // Store in session so refreshes don't require re-login
+        sessionStorage.setItem('ava_admin_key', ADMIN_KEY);
+        renderEmployers(data);
+      } else {
+        document.getElementById('loginError').textContent = 'Incorrect password. Please try again.';
+        document.getElementById('loginError').style.display = 'block';
+        ADMIN_KEY = '';
+      }
+    })
+    .catch(function(err) {
+      document.getElementById('loginError').textContent = 'Could not connect. Check your internet connection.';
+      document.getElementById('loginError').style.display = 'block';
+      ADMIN_KEY = '';
+    });
+}
+
+// Check for stored session
+(function() {
+  var stored = sessionStorage.getItem('ava_admin_key');
+  if (stored) {
+    ADMIN_KEY = stored;
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('adminMain').style.display = 'block';
+    loadEmployers();
+  }
+})();
 
 function loadEmployers() {
   var listEl = document.getElementById('employerList');
   listEl.innerHTML = '<div class="loading">Loading employers...</div>';
 
-  fetch(API_URL + '?action=list_employers')
+  fetch(API_URL + '?action=list_employers&key=' + encodeURIComponent(ADMIN_KEY))
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (!data.success || !data.employers || data.employers.length === 0) {
-        listEl.innerHTML = '<div class="empty">No employers set up yet. Create one above.</div>';
-        return;
-      }
-
-      var html = '';
-      data.employers.forEach(function(emp) {
-        html += '<div class="employer-item">' +
-          '<h4>' + escapeHtml(emp.name) + '</h4>' +
-          '<p>' + escapeHtml(emp.email) + '</p>' +
-          '<div class="links">' +
-            '<a class="small-btn purple" href="' + escapeHtml(emp.employee_form_url) + '" target="_blank">Employee Form Link</a>' +
-            '<a class="small-btn green" href="' + escapeHtml(emp.sheet_url) + '" target="_blank">Google Sheet</a>' +
-            '<button class="small-btn purple" onclick="copyText(\'' + escapeHtml(emp.employee_form_url) + '\')">Copy Link</button>' +
-            '<button class="small-btn amber" onclick="exportCsv(\'' + escapeHtml(emp.sheet_id) + '\', \'' + escapeHtml(emp.name) + '\', this)">Export CSV</button>' +
-          '</div>' +
-        '</div>';
-      });
-
-      listEl.innerHTML = html;
+      renderEmployers(data);
     })
     .catch(function(err) {
       listEl.innerHTML = '<div class="empty">Could not load employers. Check the Apps Script deployment. (' + err + ')</div>';
     });
+}
+
+function renderEmployers(data) {
+  var listEl = document.getElementById('employerList');
+
+  if (!data.success || !data.employers || data.employers.length === 0) {
+    listEl.innerHTML = '<div class="empty">No employers set up yet. Create one above.</div>';
+    return;
+  }
+
+  var html = '';
+  data.employers.forEach(function(emp) {
+    html += '<div class="employer-item">' +
+      '<h4>' + escapeHtml(emp.name) + '</h4>' +
+      '<p>' + escapeHtml(emp.email) + '</p>' +
+      '<div class="links">' +
+        '<a class="small-btn purple" href="' + escapeHtml(emp.employee_form_url) + '" target="_blank">Employee Form Link</a>' +
+        '<a class="small-btn green" href="' + escapeHtml(emp.sheet_url) + '" target="_blank">Google Sheet</a>' +
+        '<button class="small-btn purple" onclick="copyText(\'' + escapeHtml(emp.employee_form_url) + '\')">Copy Link</button>' +
+        '<button class="small-btn amber" onclick="exportCsv(\'' + escapeHtml(emp.sheet_id) + '\', \'' + escapeHtml(emp.name) + '\', this)">Export CSV</button>' +
+      '</div>' +
+    '</div>';
+  });
+
+  listEl.innerHTML = html;
 }
 
 function handleCreate(e) {
@@ -247,6 +312,7 @@ function handleCreate(e) {
 
   var payload = {
     action: 'create_employer',
+    admin_key: ADMIN_KEY,
     employer_name: name,
     employer_email: email
   };
@@ -274,7 +340,7 @@ function handleCreate(e) {
     setTimeout(function() {
       loadEmployers();
       // Also try to update the result card
-      fetch(API_URL + '?action=list_employers')
+      fetch(API_URL + '?action=list_employers&key=' + encodeURIComponent(ADMIN_KEY))
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.employers) {
@@ -319,6 +385,7 @@ function exportCsv(sheetId, employerName, btn) {
 
   var payload = {
     action: 'export_csv',
+    admin_key: ADMIN_KEY,
     sheet_id: sheetId
   };
 
@@ -334,14 +401,16 @@ function exportCsv(sheetId, employerName, btn) {
       btn.style.background = '#d4edda';
       btn.style.color = '#155724';
 
-      // Open the download
-      window.open(data.download_url, '_blank');
-
       alert('Export complete!\n\n' +
         '• ' + data.records_exported + ' record(s) exported\n' +
         '• File: ' + data.file_name + '\n' +
         '• Records moved to Existing Employees tab\n\n' +
-        'The CSV file should be downloading now. It\'s also saved in your Employer Sheets folder on Google Drive.');
+        'The CSV file is in the BrightPay Uploads folder on your AVA.Payroll Shared Drive. Open it from Google Drive to download.');
+
+      // Open the Drive file
+      if (data.drive_url) {
+        window.open(data.drive_url, '_blank');
+      }
 
       setTimeout(function() {
         btn.textContent = original;
