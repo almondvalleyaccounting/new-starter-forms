@@ -392,6 +392,28 @@
 </div>
 
 <script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbwo9ocxEo501JfSgzpFgeMbSzj9fn2HvaShBjH26oYY3x30WCVdBbTIgGFciRLjnHBEgA/exec';
+
+// Read employer sheet ID and default email from URL params
+var params = new URLSearchParams(window.location.search);
+var SHEET_ID = params.get('eid') || '';
+
+// Pre-fill employer email if available
+if (SHEET_ID) {
+  document.getElementById('employerEmail').placeholder = 'Loading employer email...';
+  fetch(API_URL + '?action=get_employer&eid=' + SHEET_ID)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success && data.employer_email) {
+        document.getElementById('employerEmail').value = data.employer_email;
+      }
+      document.getElementById('employerEmail').placeholder = 'employer@company.com';
+    })
+    .catch(function() {
+      document.getElementById('employerEmail').placeholder = 'employer@company.com';
+    });
+}
+
 function toggleP45(hasP45) {
   document.getElementById('p45Fields').style.display = hasP45 ? 'block' : 'none';
   document.getElementById('p45Note').style.display = hasP45 ? 'block' : 'none';
@@ -412,11 +434,85 @@ function toggleStudentLoan(hasLoan) {
   document.getElementById('studentPlan').required = hasLoan;
 }
 
+function val(name) {
+  var el = document.querySelector('[name="' + name + '"]');
+  if (!el) return '';
+  if (el.type === 'radio') {
+    var checked = document.querySelector('[name="' + name + '"]:checked');
+    return checked ? checked.value : '';
+  }
+  if (el.type === 'checkbox') return el.checked;
+  return el.value || '';
+}
+
 function handleSubmit(e) {
   e.preventDefault();
-  document.getElementById('formArea').style.display = 'none';
-  document.getElementById('success').style.display = 'block';
-  window.scrollTo(0, 0);
+
+  if (!SHEET_ID) {
+    alert('Error: This form link is missing an employer ID. Please check the link your employer gave you.');
+    return;
+  }
+
+  var btn = document.querySelector('.btn');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  var payload = {
+    action: 'employee_submit',
+    sheet_id: SHEET_ID,
+    employer_email: val('employer_email'),
+    title: val('title'),
+    first_name: val('first_name'),
+    middle_names: val('middle_names'),
+    surname: val('surname'),
+    dob: val('dob'),
+    gender: val('gender'),
+    ni_number: val('ni_number'),
+    address1: val('address1'),
+    address2: val('address2'),
+    city: val('city'),
+    county: val('county'),
+    postcode: val('postcode'),
+    email: val('email'),
+    phone: val('phone'),
+    bank_name: val('bank_name'),
+    account_name: val('account_name'),
+    sort_code: val('sort_code'),
+    account_number: val('account_number'),
+    building_soc_ref: val('building_soc_ref'),
+    has_p45: val('has_p45'),
+    p45_paye_ref: val('p45_paye_ref'),
+    p45_leaving_date: val('p45_leaving_date'),
+    p45_tax_code: val('p45_tax_code'),
+    p45_w1m1: val('p45_w1m1'),
+    p45_total_pay: val('p45_total_pay'),
+    p45_total_tax: val('p45_total_tax'),
+    starter_statement: val('starter_statement'),
+    student_loan: val('student_loan'),
+    student_loan_plan: val('student_loan_plan'),
+    postgrad_loan: val('postgrad_loan'),
+    emergency_name: val('emergency_name'),
+    emergency_relationship: val('emergency_relationship'),
+    emergency_phone: val('emergency_phone'),
+    right_to_work_declaration: val('right_to_work_declaration')
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(function() {
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+    window.scrollTo(0, 0);
+  })
+  .catch(function(err) {
+    alert('There was a problem submitting your details. Please try again. If the problem persists, contact your employer.\n\nError: ' + err);
+    btn.textContent = 'Submit My Details →';
+    btn.disabled = false;
+  });
 }
 </script>
 </body>

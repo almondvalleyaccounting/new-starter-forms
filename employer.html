@@ -465,6 +465,18 @@
 </div>
 
 <script>
+var API_URL = 'https://script.google.com/macros/s/AKfycbwo9ocxEo501JfSgzpFgeMbSzj9fn2HvaShBjH26oYY3x30WCVdBbTIgGFciRLjnHBEgA/exec';
+
+var urlParams = new URLSearchParams(window.location.search);
+var SHEET_ID = urlParams.get('eid') || '';
+var ROW_NUMBER = urlParams.get('row') || '';
+
+// Load employee name into the banner
+if (SHEET_ID) {
+  // In production, we'd fetch the employee name from the sheet
+  // For now the banner shows placeholder data
+}
+
 var rateCount = 0;
 
 function togglePayFields() {
@@ -533,11 +545,106 @@ function toggleTupe(isTupe) {
   document.getElementById('tupeFields').classList.toggle('active', isTupe);
 }
 
+function val(name) {
+  var el = document.querySelector('[name="' + name + '"]');
+  if (!el) return '';
+  if (el.type === 'radio') {
+    var checked = document.querySelector('[name="' + name + '"]:checked');
+    return checked ? checked.value : '';
+  }
+  if (el.type === 'checkbox') return el.checked;
+  return el.value || '';
+}
+
+function collectAdditionalRates() {
+  var rates = [];
+  var rows = document.querySelectorAll('.rate-row');
+  rows.forEach(function(row) {
+    var descInput = row.querySelector('input[type="text"]');
+    var valInput = row.querySelector('input[type="number"]');
+    if (descInput && valInput && descInput.value) {
+      rates.push(descInput.value + ': £' + (valInput.value || '0'));
+    }
+  });
+  return rates.join(' | ');
+}
+
+function collectWorkingDays() {
+  var days = [];
+  document.querySelectorAll('[name^="day_"]:checked').forEach(function(cb) {
+    days.push(cb.value);
+  });
+  return days.join(', ');
+}
+
 function handleSubmit(e) {
   e.preventDefault();
-  document.getElementById('formArea').style.display = 'none';
-  document.getElementById('success').style.display = 'block';
-  window.scrollTo(0, 0);
+
+  if (!SHEET_ID || !ROW_NUMBER) {
+    alert('Error: This form link is missing required parameters. Please use the link from the email notification.');
+    return;
+  }
+
+  var btn = document.querySelector('.btn');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  var payload = {
+    action: 'employer_submit',
+    sheet_id: SHEET_ID,
+    row_number: ROW_NUMBER,
+    start_date: val('start_date'),
+    working_days: collectWorkingDays(),
+    hours_per_week: val('hours_per_week'),
+    pay_basis: val('pay_basis'),
+    annual_salary: val('annual_salary'),
+    hourly_rate: val('hourly_rate'),
+    daily_rate: val('daily_rate'),
+    piece_description: val('piece_description'),
+    piece_rate: val('piece_rate'),
+    pay_frequency: val('pay_frequency'),
+    payment_method: val('payment_method'),
+    additional_rates: collectAdditionalRates(),
+    holiday_basis: val('holiday_basis'),
+    custom_holiday_days: val('custom_holiday_days'),
+    auto_enrol: val('auto_enrol'),
+    postponement_date: val('postponement_date'),
+    under_21: val('under_21'),
+    apprentice_u25: val('apprentice_u25'),
+    director: val('director'),
+    director_ni_method: val('director_ni_method'),
+    director_date: val('director_date'),
+    tupe: val('tupe'),
+    tupe_prev_employer: val('tupe_prev_employer'),
+    tupe_prev_payroll_ref: val('tupe_prev_payroll_ref'),
+    tupe_gross_ytd: val('tupe_gross_ytd'),
+    tupe_tax_ytd: val('tupe_tax_ytd'),
+    tupe_ee_ni_ytd: val('tupe_ee_ni_ytd'),
+    tupe_er_ni_ytd: val('tupe_er_ni_ytd'),
+    tupe_ee_pension_ytd: val('tupe_ee_pension_ytd'),
+    payroll_id: val('payroll_id'),
+    job_title: val('job_title'),
+    department: val('department'),
+    notes: val('notes'),
+    right_to_work_verified: val('right_to_work_verified')
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(function() {
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+    window.scrollTo(0, 0);
+  })
+  .catch(function(err) {
+    alert('There was a problem submitting. Please try again.\n\nError: ' + err);
+    btn.textContent = 'Submit to Payroll →';
+    btn.disabled = false;
+  });
 }
 </script>
 </body>
