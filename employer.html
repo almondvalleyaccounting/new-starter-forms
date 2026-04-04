@@ -336,39 +336,17 @@
         <div id="holidayNote" class="info-box" style="display:none;margin-top:14px"></div>
       </div>
 
-      <!-- Pension & Auto-Enrolment -->
-      <div class="card">
-        <div class="card-title">Pension</div>
-        <div class="field">
-          <label class="required">Include in Auto-Enrolment Assessment?</label>
-          <div class="radio-group">
-            <label><input type="radio" name="auto_enrol" value="yes" required> Yes</label>
-            <label><input type="radio" name="auto_enrol" value="no"> No</label>
-          </div>
-        </div>
-        <div class="field" style="margin-top:18px">
-          <label>Postponement Date (if applicable)</label>
-          <div class="hint">Leave blank if not postponing</div>
-          <input type="date" name="postponement_date">
-        </div>
-      </div>
 
-      <!-- NI & Age -->
+
+      <!-- NI Category -->
       <div class="card">
         <div class="card-title">NI Category</div>
-        <div class="hint" style="margin-bottom:16px">These questions help determine the correct NI category for this employee. Most employees are Category A — the answers below help identify exceptions.</div>
+        <div class="hint" style="margin-bottom:16px">This helps determine the correct NI category for this employee.</div>
         <div class="field">
-          <label class="required">Is this employee under 21 years old?</label>
+          <label class="required">Is this employee an apprentice?</label>
           <div class="radio-group">
-            <label><input type="radio" name="under_21" value="yes" required> Yes</label>
-            <label><input type="radio" name="under_21" value="no"> No</label>
-          </div>
-        </div>
-        <div class="field" style="margin-top:18px">
-          <label class="required">Is this employee an apprentice under 25?</label>
-          <div class="radio-group">
-            <label><input type="radio" name="apprentice_u25" value="yes" required> Yes</label>
-            <label><input type="radio" name="apprentice_u25" value="no"> No</label>
+            <label><input type="radio" name="is_apprentice" value="yes" required> Yes</label>
+            <label><input type="radio" name="is_apprentice" value="no"> No</label>
           </div>
         </div>
       </div>
@@ -400,52 +378,6 @@
         </div>
       </div>
 
-      <!-- TUPE -->
-      <div class="card">
-        <div class="card-title">TUPE Transfer</div>
-        <div class="field">
-          <label class="required">Is this a TUPE transfer?</label>
-          <div class="radio-group">
-            <label><input type="radio" name="tupe" value="yes" required onclick="toggleTupe(true)"> Yes</label>
-            <label><input type="radio" name="tupe" value="no" onclick="toggleTupe(false)"> No</label>
-          </div>
-        </div>
-        <div class="conditional-section" id="tupeFields">
-          <div class="hint" style="margin-bottom:14px;color:var(--primary);font-weight:500">For TUPE transfers, we need the year-to-date figures from the previous employer's payroll</div>
-          <div class="field">
-            <label class="required">Previous Employer Name</label>
-            <input type="text" name="tupe_prev_employer">
-          </div>
-          <div class="field" style="margin-top:18px">
-            <label>Previous Payroll Reference</label>
-            <input type="text" name="tupe_prev_payroll_ref">
-          </div>
-          <div class="row" style="margin-top:18px">
-            <div class="field">
-              <label class="required">Gross Pay to Date (£)</label>
-              <input type="number" name="tupe_gross_ytd" step="0.01">
-            </div>
-            <div class="field">
-              <label class="required">Tax Deducted to Date (£)</label>
-              <input type="number" name="tupe_tax_ytd" step="0.01">
-            </div>
-          </div>
-          <div class="row" style="margin-top:18px">
-            <div class="field">
-              <label class="required">Employee NI to Date (£)</label>
-              <input type="number" name="tupe_ee_ni_ytd" step="0.01">
-            </div>
-            <div class="field">
-              <label class="required">Employer NI to Date (£)</label>
-              <input type="number" name="tupe_er_ni_ytd" step="0.01">
-            </div>
-          </div>
-          <div class="field" style="margin-top:18px">
-            <label>Employee Pension to Date (£)</label>
-            <input type="number" name="tupe_ee_pension_ytd" step="0.01">
-          </div>
-        </div>
-      </div>
 
       <!-- Payroll Reference & Job Info -->
       <div class="card">
@@ -500,8 +432,18 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbyOyiUQVgAL2uE6Ot8J38syeK
 var urlParams = new URLSearchParams(window.location.search);
 var SHEET_ID = urlParams.get('eid') || '';
 var ROW_NUMBER = urlParams.get('row') || '';
+var EMPLOYEE_DOB = '';
 
-// Load employee name into the banner
+function calcAge(dobStr) {
+  var dob = new Date(dobStr);
+  var today = new Date();
+  var age = today.getFullYear() - dob.getFullYear();
+  var m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age;
+}
+
+// Load employee name and DOB into the banner
 if (SHEET_ID && ROW_NUMBER) {
   fetch(API_URL + '?action=get_employee&eid=' + SHEET_ID + '&row=' + ROW_NUMBER)
     .then(function(r) { return r.json(); })
@@ -511,6 +453,10 @@ if (SHEET_ID && ROW_NUMBER) {
         var initials = ((data.first_name || '?')[0] + (data.surname || '?')[0]).toUpperCase();
         document.getElementById('bannerName').textContent = fullName.trim();
         document.getElementById('bannerInitials').textContent = initials;
+
+        if (data.dob) {
+          EMPLOYEE_DOB = data.dob;
+        }
 
         if (data.submitted) {
           document.getElementById('bannerMeta').textContent = 'Submitted their details on ' + data.submitted;
@@ -590,10 +536,6 @@ function toggleDirector(isDirector) {
   document.getElementById('directorNiMethod').required = isDirector;
 }
 
-function toggleTupe(isTupe) {
-  document.getElementById('tupeFields').classList.toggle('active', isTupe);
-}
-
 function val(name) {
   var el = document.querySelector('[name="' + name + '"]');
   if (!el) return '';
@@ -656,21 +598,11 @@ function handleSubmit(e) {
     additional_rates: collectAdditionalRates(),
     holiday_basis: val('holiday_basis'),
     custom_holiday_days: val('custom_holiday_days'),
-    auto_enrol: val('auto_enrol'),
-    postponement_date: val('postponement_date'),
-    under_21: val('under_21'),
-    apprentice_u25: val('apprentice_u25'),
+    under_21: EMPLOYEE_DOB ? (calcAge(EMPLOYEE_DOB) < 21 ? 'yes' : 'no') : '',
+    apprentice_u25: (val('is_apprentice') === 'yes' && EMPLOYEE_DOB && calcAge(EMPLOYEE_DOB) < 25) ? 'yes' : 'no',
     director: val('director'),
     director_ni_method: val('director_ni_method'),
     director_date: val('director_date'),
-    tupe: val('tupe'),
-    tupe_prev_employer: val('tupe_prev_employer'),
-    tupe_prev_payroll_ref: val('tupe_prev_payroll_ref'),
-    tupe_gross_ytd: val('tupe_gross_ytd'),
-    tupe_tax_ytd: val('tupe_tax_ytd'),
-    tupe_ee_ni_ytd: val('tupe_ee_ni_ytd'),
-    tupe_er_ni_ytd: val('tupe_er_ni_ytd'),
-    tupe_ee_pension_ytd: val('tupe_ee_pension_ytd'),
     payroll_id: val('payroll_id'),
     job_title: val('job_title'),
     department: val('department'),

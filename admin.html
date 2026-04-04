@@ -136,6 +136,46 @@
   .loading { color: var(--muted); font-size: 13px; font-style: italic; }
   .empty { color: var(--muted); font-size: 13px; }
 
+  .employer-item .top-row {
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .employer-item .top-row input[type="checkbox"] {
+    margin-top: 4px; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0;
+  }
+  .employer-item .top-row .info { flex: 1; }
+
+  .small-btn.blue { background: #e6f0fa; color: #1a5c8a; }
+  .small-btn.blue:hover { background: #d0e4f5; }
+
+  .batch-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--primary); color: #fff; padding: 14px 20px;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.15); z-index: 100;
+    transform: translateY(100%); transition: transform 0.25s ease;
+  }
+  .batch-bar.visible { transform: translateY(0); }
+  .batch-bar .batch-count { font-weight: 600; font-size: 14px; }
+  .batch-bar button {
+    font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 18px;
+    border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s;
+  }
+  .batch-bar .batch-send { background: #fff; color: var(--primary); }
+  .batch-bar .batch-send:hover { background: #f0ebf7; }
+  .batch-bar .batch-send:disabled { opacity: 0.6; cursor: not-allowed; }
+  .batch-bar .batch-clear { background: rgba(255,255,255,0.15); color: #fff; }
+  .batch-bar .batch-clear:hover { background: rgba(255,255,255,0.25); }
+
+  .select-all-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .select-all-row label {
+    font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+  .select-all-row input[type="checkbox"] {
+    width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;
+  }
+
   .ava-brand {
     display: flex; align-items: center; gap: 16px;
     padding: 20px 24px; background: #fff; border: 1px solid var(--border);
@@ -238,11 +278,21 @@
 
   <!-- Existing Employers -->
   <div class="employer-list-title">Existing Employers</div>
+  <div class="select-all-row" id="selectAllRow" style="display:none">
+    <label><input type="checkbox" id="selectAllCb" onchange="toggleSelectAll(this.checked)"> Select all</label>
+  </div>
   <div id="employerList">
     <div class="loading">Loading employers...</div>
   </div>
 
   </div><!-- end adminMain -->
+
+  <!-- Batch action bar (fixed to bottom) -->
+  <div class="batch-bar" id="batchBar">
+    <span class="batch-count" id="batchCount">0 selected</span>
+    <button class="batch-send" id="batchSendBtn" onclick="sendBatchEmails()">Email Links to Selected Employers</button>
+    <button class="batch-clear" onclick="clearSelection()">Clear</button>
+  </div>
 
 </div>
 
@@ -325,20 +375,29 @@ function renderEmployers(data) {
   }
 
   var html = '';
-  data.employers.forEach(function(emp) {
-    html += '<div class="employer-item">' +
-      '<h4>' + escapeHtml(emp.name) + '</h4>' +
-      '<p>' + escapeHtml(emp.email) + '</p>' +
+  data.employers.forEach(function(emp, idx) {
+    html += '<div class="employer-item" id="emp-' + idx + '">' +
+      '<div class="top-row">' +
+        '<input type="checkbox" class="emp-select" data-idx="' + idx + '" data-name="' + escapeHtml(emp.name) + '" data-email="' + escapeHtml(emp.email) + '" data-url="' + escapeHtml(emp.employee_form_url) + '" data-sheetid="' + escapeHtml(emp.sheet_id) + '" onchange="updateBatchBar()">' +
+        '<div class="info">' +
+          '<h4>' + escapeHtml(emp.name) + '</h4>' +
+          '<p>' + escapeHtml(emp.email) + '</p>' +
+        '</div>' +
+      '</div>' +
       '<div class="links">' +
         '<a class="small-btn purple" href="' + escapeHtml(emp.employee_form_url) + '" target="_blank">Employee Form Link</a>' +
         '<a class="small-btn green" href="' + escapeHtml(emp.sheet_url) + '" target="_blank">Google Sheet</a>' +
         '<button class="small-btn purple" onclick="copyText(\'' + escapeHtml(emp.employee_form_url) + '\')">Copy Link</button>' +
+        '<button class="small-btn blue" onclick="sendSingleEmail(\'' + escapeHtml(emp.name).replace(/'/g, "\\'") + '\', \'' + escapeHtml(emp.email).replace(/'/g, "\\'") + '\', \'' + escapeHtml(emp.employee_form_url).replace(/'/g, "\\'") + '\', this)">Email Link</button>' +
         '<button class="small-btn amber" onclick="exportCsv(\'' + escapeHtml(emp.sheet_id) + '\', \'' + escapeHtml(emp.name) + '\', this)">Export CSV</button>' +
       '</div>' +
     '</div>';
   });
 
   listEl.innerHTML = html;
+  document.getElementById('selectAllRow').style.display = data.employers.length > 1 ? 'flex' : 'none';
+  document.getElementById('selectAllCb').checked = false;
+  updateBatchBar();
 }
 
 function handleCreate(e) {
@@ -476,6 +535,133 @@ function escapeHtml(str) {
   var div = document.createElement('div');
   div.appendChild(document.createTextNode(str));
   return div.innerHTML;
+}
+
+// --- Selection & Batch Email ---
+
+function getSelectedEmployers() {
+  var checks = document.querySelectorAll('.emp-select:checked');
+  var selected = [];
+  checks.forEach(function(cb) {
+    selected.push({
+      name: cb.dataset.name,
+      email: cb.dataset.email,
+      url: cb.dataset.url
+    });
+  });
+  return selected;
+}
+
+function updateBatchBar() {
+  var selected = getSelectedEmployers();
+  var bar = document.getElementById('batchBar');
+  var countEl = document.getElementById('batchCount');
+
+  if (selected.length > 0) {
+    bar.classList.add('visible');
+    countEl.textContent = selected.length + ' employer' + (selected.length > 1 ? 's' : '') + ' selected';
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.emp-select').forEach(function(cb) {
+    cb.checked = checked;
+  });
+  updateBatchBar();
+}
+
+function clearSelection() {
+  document.querySelectorAll('.emp-select').forEach(function(cb) {
+    cb.checked = false;
+  });
+  document.getElementById('selectAllCb').checked = false;
+  updateBatchBar();
+}
+
+function sendSingleEmail(name, email, url, btn) {
+  if (!confirm('Send the new starter form link to ' + name + ' at ' + email + '?')) return;
+
+  var original = btn.textContent;
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  var payload = {
+    action: 'email_employer_links',
+    admin_key: ADMIN_KEY,
+    employers: [{ name: name, email: email, url: url }]
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      btn.textContent = '✓ Sent';
+      btn.style.background = '#d4edda';
+      btn.style.color = '#155724';
+      setTimeout(function() {
+        btn.textContent = original;
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.disabled = false;
+      }, 3000);
+    } else {
+      alert('Failed to send: ' + (data.error || 'Unknown error'));
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  })
+  .catch(function(err) {
+    alert('Failed to send email: ' + err);
+    btn.textContent = original;
+    btn.disabled = false;
+  });
+}
+
+function sendBatchEmails() {
+  var selected = getSelectedEmployers();
+  if (selected.length === 0) return;
+
+  var names = selected.map(function(e) { return e.name; }).join(', ');
+  if (!confirm('Send the new starter form link to ' + selected.length + ' employer(s)?\n\n' + names)) return;
+
+  var sendBtn = document.getElementById('batchSendBtn');
+  sendBtn.textContent = 'Sending to ' + selected.length + ' employer(s)...';
+  sendBtn.disabled = true;
+
+  var payload = {
+    action: 'email_employer_links',
+    admin_key: ADMIN_KEY,
+    employers: selected
+  };
+
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      alert('Emails sent successfully to ' + data.sent + ' employer(s).' +
+        (data.failed > 0 ? '\n\n' + data.failed + ' failed — check the error log.' : ''));
+      clearSelection();
+    } else {
+      alert('Batch send failed: ' + (data.error || 'Unknown error'));
+    }
+    sendBtn.textContent = 'Email Links to Selected Employers';
+    sendBtn.disabled = false;
+  })
+  .catch(function(err) {
+    alert('Batch send failed: ' + err);
+    sendBtn.textContent = 'Email Links to Selected Employers';
+    sendBtn.disabled = false;
+  });
 }
 </script>
 </body>
