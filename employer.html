@@ -431,8 +431,8 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbyOyiUQVgAL2uE6Ot8J38syeK
 
 var urlParams = new URLSearchParams(window.location.search);
 var SHEET_ID = urlParams.get('eid') || '';
-var ROW_NUMBER = urlParams.get('row') || '';
-var EMPLOYEE_DOB = '';
+var LINK_TOKEN = urlParams.get('token') || '';
+var EMPLOYEE_DOB = ''; // no longer sent by the server; Under 21 is worked out server-side
 
 function calcAge(dobStr) {
   var dob = new Date(dobStr);
@@ -444,8 +444,18 @@ function calcAge(dobStr) {
 }
 
 // Load employee name and DOB into the banner
-if (SHEET_ID && ROW_NUMBER) {
-  fetch(API_URL + '?action=get_employee&eid=' + SHEET_ID + '&row=' + ROW_NUMBER)
+function showLinkProblem(message) {
+  document.getElementById('bannerName').textContent = 'This link cannot be used';
+  document.getElementById('bannerInitials').textContent = '!';
+  document.getElementById('bannerMeta').textContent = message;
+  var form = document.getElementById('mainForm');
+  if (form) form.style.display = 'none';
+}
+
+if (SHEET_ID && !LINK_TOKEN) {
+  showLinkProblem('This link has been replaced by a more secure one. Please use the most recent email from us, or contact payroll@almondvalleyaccounting.co.uk.');
+} else if (SHEET_ID && LINK_TOKEN) {
+  fetch(API_URL + '?action=get_employee&eid=' + encodeURIComponent(SHEET_ID) + '&token=' + encodeURIComponent(LINK_TOKEN))
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data.success) {
@@ -461,6 +471,8 @@ if (SHEET_ID && ROW_NUMBER) {
         if (data.submitted) {
           document.getElementById('bannerMeta').textContent = 'Submitted their details on ' + data.submitted;
         }
+      } else if (data.link_replaced || data.error) {
+        showLinkProblem(data.error || 'This link is no longer valid. Please contact payroll.');
       } else {
         document.getElementById('bannerName').textContent = 'Employee';
         document.getElementById('bannerInitials').textContent = '?';
@@ -571,7 +583,7 @@ function collectWorkingDays() {
 function handleSubmit(e) {
   e.preventDefault();
 
-  if (!SHEET_ID || !ROW_NUMBER) {
+  if (!SHEET_ID || !LINK_TOKEN) {
     alert('Error: This form link is missing required parameters. Please use the link from the email notification.');
     return;
   }
@@ -583,7 +595,8 @@ function handleSubmit(e) {
   var payload = {
     action: 'employer_submit',
     sheet_id: SHEET_ID,
-    row_number: ROW_NUMBER,
+    token: LINK_TOKEN,
+    is_apprentice: val('is_apprentice'),
     start_date: val('start_date'),
     working_days: collectWorkingDays(),
     hours_per_week: val('hours_per_week'),
@@ -612,11 +625,17 @@ function handleSubmit(e) {
 
   fetch(API_URL, {
     method: 'POST',
-    mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload)
   })
-  .then(function() {
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (!data.success) {
+      alert(data.error || 'There was a problem submitting. Please try again.');
+      btn.textContent = 'Submit to Payroll →';
+      btn.disabled = false;
+      return;
+    }
     document.getElementById('formArea').style.display = 'none';
     document.getElementById('success').style.display = 'block';
     window.scrollTo(0, 0);

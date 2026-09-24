@@ -58,7 +58,7 @@
   label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
   .hint { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
 
-  input[type="text"], input[type="email"] {
+  input[type="text"], input[type="email"], input[type="password"] {
     width: 100%; padding: 10px 12px; font-family: inherit; font-size: 14px;
     border: 1px solid var(--border); border-radius: 8px; background: #fafafa; transition: border-color 0.2s;
   }
@@ -222,6 +222,30 @@
       </div>
       <button class="btn" onclick="doLogin()" style="margin-top:12px">Log In →</button>
       <div id="loginError" style="display:none;color:#c0392b;font-size:13px;margin-top:10px;font-weight:500"></div>
+      <p style="margin-top:14px;font-size:13px"><a href="#" onclick="showResetPanel();return false">Forgotten the password?</a></p>
+    </div>
+
+    <!-- Password reset (hidden until requested) -->
+    <div class="card" id="resetPanel" style="display:none">
+      <div class="card-title">Reset admin password</div>
+      <p style="font-size:13px;margin-bottom:12px">A one-time code will be emailed to <strong>payroll@almondvalleyaccounting.co.uk</strong>. It expires after 15 minutes.</p>
+      <button class="btn" id="resetRequestBtn" onclick="requestReset()">Email me a reset code</button>
+      <div id="resetStep2" style="display:none;margin-top:16px">
+        <div class="field">
+          <label class="required">Reset code</label>
+          <input type="text" id="resetCode" inputmode="numeric" autocomplete="one-time-code" placeholder="8-digit code">
+        </div>
+        <div class="field">
+          <label class="required">New password (at least 12 characters)</label>
+          <input type="password" id="resetNew" autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label class="required">Confirm new password</label>
+          <input type="password" id="resetConfirm" autocomplete="new-password">
+        </div>
+        <button class="btn" id="resetCompleteBtn" onclick="completeReset()">Set new password &rarr;</button>
+      </div>
+      <div id="resetMsg" style="display:none;font-size:13px;margin-top:10px;font-weight:500"></div>
     </div>
   </div>
 
@@ -276,6 +300,33 @@
 
   <div class="divider"></div>
 
+  <!-- Admin password -->
+  <div class="card">
+    <div class="card-title">Admin password</div>
+    <div id="changePwForm" style="display:none">
+      <div class="field">
+        <label class="required">Current password</label>
+        <input type="password" id="pwCurrent" autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label class="required">New password (at least 12 characters)</label>
+        <input type="password" id="pwNew" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label class="required">Confirm new password</label>
+        <input type="password" id="pwConfirm" autocomplete="new-password">
+      </div>
+      <button class="btn" id="changePwBtn" onclick="changePassword()">Change password &rarr;</button>
+    </div>
+    <div id="changePwMsg" style="display:none;font-size:13px;margin-top:10px;font-weight:500"></div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button class="btn" id="changePwToggle" onclick="toggleChangePw()">Change password</button>
+      <button class="btn" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
   <!-- Existing Employers -->
   <div class="employer-list-title">Existing Employers</div>
   <div class="select-all-row" id="selectAllRow" style="display:none">
@@ -304,7 +355,6 @@ function doLogin() {
   var pwd = document.getElementById('adminPassword').value.trim();
   if (!pwd) return;
 
-  ADMIN_KEY = pwd;
   document.getElementById('loginError').style.display = 'none';
 
   // Show loading state
@@ -313,9 +363,15 @@ function doLogin() {
   loginBtn.disabled = true;
   document.getElementById('adminPassword').disabled = true;
 
-  // Test the key by trying to list employers
-  fetch(API_URL + '?action=list_employers&key=' + encodeURIComponent(ADMIN_KEY))
-    .then(function(r) { return r.json(); })
+  // Exchange the password for a session token, then load employers with it.
+  // The password is sent once, in a POST body, and is never stored.
+  authPost({ action: 'admin_login', password: pwd })
+    .then(function(login) {
+      if (!login.success) return login;
+      ADMIN_KEY = login.token;
+      return fetch(API_URL + '?action=list_employers&key=' + encodeURIComponent(ADMIN_KEY))
+        .then(function(r) { return r.json(); });
+    })
     .then(function(data) {
       if (data.success) {
         document.getElementById('loginGate').style.display = 'none';
@@ -323,7 +379,7 @@ function doLogin() {
         sessionStorage.setItem('ava_admin_key', ADMIN_KEY);
         renderEmployers(data);
       } else {
-        document.getElementById('loginError').textContent = 'Incorrect password. Please try again.';
+        document.getElementById('loginError').textContent = data.error || 'Incorrect password. Please try again.';
         document.getElementById('loginError').style.display = 'block';
         ADMIN_KEY = '';
         loginBtn.textContent = 'Log In →';
@@ -352,6 +408,129 @@ function doLogin() {
   }
 })();
 
+// ── Admin password: login helper, change, reset, logout ──
+
+function authPost(payload) {
+  // text/plain avoids a CORS preflight; Apps Script returns JSON we can read
+  return fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  }).then(function(r) { return r.json(); });
+}
+
+function showMsg(id, text, ok) {
+  var el = document.getElementById(id);
+  el.textContent = text;
+  el.style.color = ok ? '#1e7e34' : '#c0392b';
+  el.style.display = 'block';
+}
+
+function logout(message) {
+  ADMIN_KEY = '';
+  sessionStorage.removeItem('ava_admin_key');
+  document.getElementById('adminMain').style.display = 'none';
+  document.getElementById('loginGate').style.display = 'block';
+  var pw = document.getElementById('adminPassword');
+  pw.value = '';
+  pw.disabled = false;
+  var loginBtn = document.querySelector('#loginGate .btn');
+  loginBtn.textContent = 'Log In →';
+  loginBtn.disabled = false;
+  if (message) showMsg('loginError', message, false);
+}
+
+function toggleChangePw() {
+  var form = document.getElementById('changePwForm');
+  var open = form.style.display === 'none';
+  form.style.display = open ? 'block' : 'none';
+  document.getElementById('changePwToggle').textContent = open ? 'Cancel' : 'Change password';
+  document.getElementById('changePwMsg').style.display = 'none';
+}
+
+function changePassword() {
+  var current = document.getElementById('pwCurrent').value;
+  var next = document.getElementById('pwNew').value;
+  var confirm = document.getElementById('pwConfirm').value;
+  if (!current || !next) return showMsg('changePwMsg', 'Fill in all three fields.', false);
+  if (next.length < 12) return showMsg('changePwMsg', 'The new password must be at least 12 characters.', false);
+  if (next !== confirm) return showMsg('changePwMsg', 'The new passwords do not match.', false);
+
+  var btn = document.getElementById('changePwBtn');
+  btn.disabled = true;
+  btn.textContent = 'Changing...';
+  authPost({ action: 'change_admin_password', admin_key: ADMIN_KEY, current_password: current, new_password: next })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = 'Change password →';
+      if (data.auth_error) return logout(data.error);
+      if (!data.success) return showMsg('changePwMsg', data.error || 'Could not change the password.', false);
+      ADMIN_KEY = data.token;
+      sessionStorage.setItem('ava_admin_key', ADMIN_KEY);
+      ['pwCurrent', 'pwNew', 'pwConfirm'].forEach(function(id) { document.getElementById(id).value = ''; });
+      toggleChangePw();
+      showMsg('changePwMsg', 'Password changed. Everyone else has been signed out, and a notice has gone to the payroll mailbox.', true);
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Change password →';
+      showMsg('changePwMsg', 'Could not connect. Check your internet connection.', false);
+    });
+}
+
+function showResetPanel() {
+  document.getElementById('resetPanel').style.display = 'block';
+}
+
+function requestReset() {
+  var btn = document.getElementById('resetRequestBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  authPost({ action: 'request_admin_reset' })
+    .then(function(data) {
+      btn.textContent = 'Send another code';
+      btn.disabled = false;
+      document.getElementById('resetStep2').style.display = 'block';
+      showMsg('resetMsg', data.message || 'If resets are allowed right now, a code has been emailed.', true);
+    })
+    .catch(function() {
+      btn.textContent = 'Email me a reset code';
+      btn.disabled = false;
+      showMsg('resetMsg', 'Could not connect. Check your internet connection.', false);
+    });
+}
+
+function completeReset() {
+  var code = document.getElementById('resetCode').value.trim();
+  var next = document.getElementById('resetNew').value;
+  var confirm = document.getElementById('resetConfirm').value;
+  if (!code || !next) return showMsg('resetMsg', 'Enter the code and a new password.', false);
+  if (next.length < 12) return showMsg('resetMsg', 'The new password must be at least 12 characters.', false);
+  if (next !== confirm) return showMsg('resetMsg', 'The new passwords do not match.', false);
+
+  var btn = document.getElementById('resetCompleteBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  authPost({ action: 'complete_admin_reset', reset_code: code, new_password: next })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = 'Set new password →';
+      if (!data.success) return showMsg('resetMsg', data.error || 'Could not reset the password.', false);
+      ADMIN_KEY = data.token;
+      sessionStorage.setItem('ava_admin_key', ADMIN_KEY);
+      ['resetCode', 'resetNew', 'resetConfirm'].forEach(function(id) { document.getElementById(id).value = ''; });
+      document.getElementById('resetPanel').style.display = 'none';
+      document.getElementById('loginGate').style.display = 'none';
+      document.getElementById('adminMain').style.display = 'block';
+      loadEmployers();
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Set new password →';
+      showMsg('resetMsg', 'Could not connect. Check your internet connection.', false);
+    });
+}
+
 function loadEmployers() {
   var listEl = document.getElementById('employerList');
   listEl.innerHTML = '<div class="loading">Loading employers...</div>';
@@ -368,6 +547,11 @@ function loadEmployers() {
 
 function renderEmployers(data) {
   var listEl = document.getElementById('employerList');
+
+  if (data && data.success === false && data.auth_error) {
+    logout('Your session has expired. Please log in again.');
+    return;
+  }
 
   if (!data.success || !data.employers || data.employers.length === 0) {
     listEl.innerHTML = '<div class="empty">No employers set up yet. Create one above.</div>';
