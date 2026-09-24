@@ -175,6 +175,15 @@
     .ava-details span { display: block; }
     .ava-sep { display: none; }
   }
+  /* Working days: each day is its own bordered chip, so it is clear which box belongs to which day */
+  .day-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .day-chips .checkbox-label {
+    display: inline-flex; align-items: center; gap: 6px; margin: 0;
+    padding: 8px 12px; border: 1.5px solid #d0d5d2; border-radius: 8px;
+    background: #fff; cursor: pointer; user-select: none;
+  }
+  .day-chips .checkbox-label:has(input:checked) { border-color: var(--primary); background: var(--primary-light); font-weight: 600; }
+  .day-chips input[type="checkbox"] { margin: 0; }
 </style>
 </head>
 <body>
@@ -226,7 +235,7 @@
         <div class="field">
           <label class="required">Normal Working Days</label>
           <div class="hint">Tick all days that apply</div>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px">
+          <div class="day-chips">
             <label class="checkbox-label"><input type="checkbox" name="day_mon" value="Mon"> Mon</label>
             <label class="checkbox-label"><input type="checkbox" name="day_tue" value="Tue"> Tue</label>
             <label class="checkbox-label"><input type="checkbox" name="day_wed" value="Wed"> Wed</label>
