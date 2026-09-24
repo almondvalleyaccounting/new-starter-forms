@@ -472,9 +472,11 @@ function changePassword() {
       showMsg('changePwMsg', 'Password changed. Everyone else has been signed out, and a notice has gone to the payroll mailbox.', true);
     })
     .catch(function() {
+      // The server may have made the change even though its reply couldn't be read,
+      // and a change signs out every session. So don't guess: explain and return to login.
       btn.disabled = false;
       btn.textContent = 'Change password →';
-      showMsg('changePwMsg', 'Could not connect. Check your internet connection.', false);
+      logout('We could not confirm the change. If an email saying the password was changed has arrived at payroll@, log in with the NEW password; otherwise use the current one.');
     });
 }
 
@@ -527,7 +529,7 @@ function completeReset() {
     .catch(function() {
       btn.disabled = false;
       btn.textContent = 'Set new password →';
-      showMsg('resetMsg', 'Could not connect. Check your internet connection.', false);
+      showMsg('resetMsg', 'We could not confirm the reset. If an email saying the password was reset has arrived at payroll@, log in above with the NEW password; otherwise try again.', false);
     });
 }
 
